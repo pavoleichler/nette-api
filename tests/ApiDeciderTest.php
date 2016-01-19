@@ -22,9 +22,9 @@ class ApiDeciderTest extends PHPUnit_Framework_TestCase
         $apiDecider = new ApiDecider($apiLink);
         $result = $apiDecider->getApiHandler('POST', 1, 'article', 'list');
 
-        $this->assertInstanceOf('Tomaj\NetteApi\EndpointIdentifier', $result['endpoint']);
-        $this->assertInstanceOf('Tomaj\NetteApi\Authorization\NoAuthorization', $result['authorization']);
-        $this->assertInstanceOf('Tomaj\NetteApi\Handlers\DefaultHandler', $result['handler']);
+        $this->assertInstanceOf('Tomaj\NetteApi\EndpointIdentifier', $result->getEndpoint());
+        $this->assertInstanceOf('Tomaj\NetteApi\Authorization\NoAuthorization', $result->getAuthorization());
+        $this->assertInstanceOf('Tomaj\NetteApi\Handlers\DefaultHandler', $result->getHandler());
     }
 
     public function testFindRightHandler()
@@ -41,14 +41,14 @@ class ApiDeciderTest extends PHPUnit_Framework_TestCase
 
         $result = $apiDecider->getApiHandler('POST', 2, 'comments', 'list');
 
-        $this->assertInstanceOf('Tomaj\NetteApi\EndpointIdentifier', $result['endpoint']);
-        $this->assertInstanceOf('Tomaj\NetteApi\Authorization\NoAuthorization', $result['authorization']);
-        $this->assertInstanceOf('Tomaj\NetteApi\Handlers\AlwaysOkHandler', $result['handler']);
+        $this->assertInstanceOf('Tomaj\NetteApi\EndpointIdentifier', $result->getEndpoint());
+        $this->assertInstanceOf('Tomaj\NetteApi\Authorization\NoAuthorization', $result->getAuthorization());
+        $this->assertInstanceOf('Tomaj\NetteApi\Handlers\AlwaysOkHandler', $result->getHandler());
 
-        $this->assertEquals('POST', $result['endpoint']->getMethod());
-        $this->assertEquals(2, $result['endpoint']->getVersion());
-        $this->assertEquals('comments', $result['endpoint']->getPackage());
-        $this->assertEquals('list', $result['endpoint']->getApiAction());
+        $this->assertEquals('POST', $result->getEndpoint()->getMethod());
+        $this->assertEquals(2, $result->getEndpoint()->getVersion());
+        $this->assertEquals('comments', $result->getEndpoint()->getPackage());
+        $this->assertEquals('list', $result->getEndpoint()->getApiAction());
     }
 
     public function testGetHandlers()

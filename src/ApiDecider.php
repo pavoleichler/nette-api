@@ -39,23 +39,22 @@ class ApiDecider
      * @param string   $package
      * @param string   $apiAction
      *
-     * @return array
+     * @return ApiIdentifier
      */
     public function getApiHandler($method, $version, $package, $apiAction = '')
     {
         foreach ($this->handlers as $handler) {
-            $identifier = $handler['endpoint'];
+            $identifier = $handler->getEndpoint();
             if ($method == $identifier->getMethod() && $identifier->getVersion() == $version && $identifier->getPackage() == $package && $identifier->getApiAction() == $apiAction) {
-                $endpointIdentifier = new EndpointIdentifier($method, $version, $package, $apiAction);
-                $handler['handler']->setEndpointIdentifier($endpointIdentifier);
+                $handler->getHandler()->setEndpointIdentifier($handler->getEndpoint());
                 return $handler;
             }
         }
-        return [
-            'endpoint' => new EndpointIdentifier($method, $version, $package, $apiAction),
-            'authorization' => new NoAuthorization(),
-            'handler' => new DefaultHandler($version, $package, $apiAction)
-        ];
+        return new ApiIdentifier(
+            new EndpointIdentifier($method, $version, $package, $apiAction),
+            new DefaultHandler($version, $package, $apiAction),
+            new NoAuthorization()
+        );
     }
 
     /**
@@ -69,11 +68,7 @@ class ApiDecider
      */
     public function addApiHandler(EndpointInterface $endpointIdentifier, ApiHandlerInterface $handler, ApiAuthorizationInterface $apiAuthorization)
     {
-        $this->handlers[] = [
-            'endpoint' => $endpointIdentifier,
-            'handler' => $handler,
-            'authorization' => $apiAuthorization,
-        ];
+        $this->handlers[] = new ApiIdentifier($endpointIdentifier, $handler, $apiAuthorization);
         return $this;
     }
 

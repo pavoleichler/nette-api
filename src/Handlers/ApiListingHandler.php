@@ -53,18 +53,19 @@ class ApiListingHandler extends BaseHandler
     private function getHandlersList($version)
     {
         $versionHandlers = array_filter($this->apiDecider->getHandlers(), function ($handler) use ($version) {
-            return $version == $handler['endpoint']->getVersion();
+            return $version == $handler->getEndpoint()->getVersion();
         });
 
         return array_map(function ($handler) {
+            $endpoint = $handler->getEndpoint();
             return [
-                'method' => $handler['endpoint']->getMethod(),
-                'version' => $handler['endpoint']->getVersion(),
-                'package' => $handler['endpoint']->getPackage(),
-                'api_action' => $handler['endpoint']->getApiAction(),
-                'authorization' => get_class($handler['authorization']),
-                'url' => $this->apiLink->link($handler['endpoint']),
-                'params' => $this->createParamsList($handler['handler']),
+                'method' => $endpoint->getMethod(),
+                'version' => $endpoint->getVersion(),
+                'package' => $endpoint->getPackage(),
+                'api_action' => $endpoint->getApiAction(),
+                'authorization' => get_class($handler->getAuthorization()),
+                'url' => $this->apiLink->link($handler->getEndpoint()),
+                'params' => $this->createParamsList($handler->getHandler()),
             ];
         }, $versionHandlers);
     }
