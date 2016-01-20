@@ -11,9 +11,9 @@ use Tomaj\NetteApi\Link\ApiLink;
 class ApiDecider
 {
     /**
-     * @var ApiHandlerInterface[]
+     * @var ApiIdentifier[]
      */
-    private $handlers = [];
+    private $apiIdentifiers = [];
 
     /**
      * @var ApiLink
@@ -41,13 +41,13 @@ class ApiDecider
      *
      * @return ApiIdentifier
      */
-    public function getApiHandler($method, $version, $package, $apiAction = '')
+    public function getApi($method, $version, $package, $apiAction = '')
     {
-        foreach ($this->handlers as $handler) {
-            $identifier = $handler->getEndpoint();
-            if ($method == $identifier->getMethod() && $identifier->getVersion() == $version && $identifier->getPackage() == $package && $identifier->getApiAction() == $apiAction) {
-                $handler->getHandler()->setEndpointIdentifier($handler->getEndpoint());
-                return $handler;
+        foreach ($this->apiIdentifiers as $identifier) {
+            $endpoint = $identifier->getEndpoint();
+            if ($endpoint->getMethod() == $method && $endpoint->getVersion() == $version && $endpoint->getPackage() == $package && $endpoint->getApiAction() == $apiAction) {
+                $identifier->getHandler()->setEndpointIdentifier($endpoint);
+                return $identifier;
             }
         }
         return new ApiIdentifier(
@@ -58,7 +58,24 @@ class ApiDecider
     }
 
     /**
+     * Register new api
+     *
+     * @param EndpointInterface         $endpointIdentifier
+     * @param ApiHandlerInterface       $handler
+     * @param ApiAuthorizationInterface $apiAuthorization
+     *
+     * @return $this
+     */
+    public function addApi(EndpointInterface $endpointIdentifier, ApiHandlerInterface $handler, ApiAuthorizationInterface $apiAuthorization)
+    {
+        $this->apiIdentifiers[] = new ApiIdentifier($endpointIdentifier, $handler, $apiAuthorization);
+        return $this;
+    }
+
+    /**
      * Register new api handler
+     *
+     * @deprecated use addApi()
      *
      * @param EndpointInterface         $endpointIdentifier
      * @param ApiHandlerInterface       $handler
@@ -68,17 +85,16 @@ class ApiDecider
      */
     public function addApiHandler(EndpointInterface $endpointIdentifier, ApiHandlerInterface $handler, ApiAuthorizationInterface $apiAuthorization)
     {
-        $this->handlers[] = new ApiIdentifier($endpointIdentifier, $handler, $apiAuthorization);
-        return $this;
+        return $this->addApi($endpointIdentifier, $handler, $apiAuthorization);
     }
 
     /**
-     * Get all registered handlers
+     * Get all registered api identifiers
      *
-     * @return Handlers\ApiHandlerInterface[]
+     * @return ApiIdentifier[]
      */
-    public function getHandlers()
+    public function getApiIdentifiers()
     {
-        return $this->handlers;
+        return $this->apiIdentifiers;
     }
 }

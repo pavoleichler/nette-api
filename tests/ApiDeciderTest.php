@@ -20,7 +20,7 @@ class ApiDeciderTest extends PHPUnit_Framework_TestCase
         $apiLink = new ApiLink($linkGenerator);
 
         $apiDecider = new ApiDecider($apiLink);
-        $result = $apiDecider->getApiHandler('POST', 1, 'article', 'list');
+        $result = $apiDecider->getApi('POST', 1, 'article', 'list');
 
         $this->assertInstanceOf('Tomaj\NetteApi\EndpointIdentifier', $result->getEndpoint());
         $this->assertInstanceOf('Tomaj\NetteApi\Authorization\NoAuthorization', $result->getAuthorization());
@@ -33,13 +33,13 @@ class ApiDeciderTest extends PHPUnit_Framework_TestCase
         $apiLink = new ApiLink($linkGenerator);
 
         $apiDecider = new ApiDecider($apiLink);
-        $apiDecider->addApiHandler(
+        $apiDecider->addApi(
             new EndpointIdentifier('POST', 2, 'comments', 'list'),
             new AlwaysOkHandler(),
             new NoAuthorization()
         );
 
-        $result = $apiDecider->getApiHandler('POST', 2, 'comments', 'list');
+        $result = $apiDecider->getApi('POST', 2, 'comments', 'list');
 
         $this->assertInstanceOf('Tomaj\NetteApi\EndpointIdentifier', $result->getEndpoint());
         $this->assertInstanceOf('Tomaj\NetteApi\Authorization\NoAuthorization', $result->getAuthorization());
@@ -58,14 +58,14 @@ class ApiDeciderTest extends PHPUnit_Framework_TestCase
 
         $apiDecider = new ApiDecider($apiLink);
 
-        $this->assertEquals(0, count($apiDecider->getHandlers()));
+        $this->assertEquals(0, count($apiDecider->getApiIdentifiers()));
 
-        $apiDecider->addApiHandler(
+        $apiDecider->addApi(
             new EndpointIdentifier('POST', 2, 'comments', 'list'),
             new AlwaysOkHandler(),
             new NoAuthorization()
         );
 
-        $this->assertEquals(1, count($apiDecider->getHandlers()));
+        $this->assertEquals(1, count($apiDecider->getApiIdentifiers()));
     }
 }
