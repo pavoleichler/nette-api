@@ -8,6 +8,7 @@ use Nette\Application\UI\Presenter;
 use Nette\DI\Container;
 use Nette\Http\Response;
 use Tomaj\NetteApi\ApiDecider;
+use Tomaj\NetteApi\Exceptions\ApiException;
 use Tomaj\NetteApi\Authorization\ApiAuthorizationInterface;
 use Tomaj\NetteApi\Handlers\ApiHandlerInterface;
 use Tomaj\NetteApi\Logger\ApiLoggerInterface;
@@ -90,9 +91,8 @@ class ApiPresenter extends Presenter
             $response = $handler->handle($params);
             $code = $response->getCode();
         } catch (Exception $exception) {
-            $response = new JsonApiResponse(500, ['status' => 'error', 'message' => 'Internal server error']);
+            $response = $this->handleException($exception);
             $code = $response->getCode();
-            Debugger::log($exception, Debugger::EXCEPTION);
         }
 
         $end = microtime(true);
@@ -224,5 +224,28 @@ class ApiPresenter extends Presenter
             $url .= ':' . $refererParsedUrl['port'];
         }
         return $url;
+    }
+
+    private function handleException($exception)
+    {
+
+        if ($exception instanceof ApiException){
+            // API exception
+            $data = [
+                'status' => 'error',
+                'message' => $exception->getMessage()
+            ];
+            if ($exception->getType()){
+                $data['type'] = $exception->getType();
+            }
+            $response = new JsonApiResponse($exception->getCode(), $data);
+        }else{
+            // unknown exception
+            $response = new JsonApiResponse(500, ['status' => 'error', 'message' => 'Internal server error']);
+            Debugger::log($exception, Debugger::EXCEPTION);
+        }
+
+        return $response;
+
     }
 }
