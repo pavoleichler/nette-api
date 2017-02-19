@@ -28,16 +28,34 @@ class ConsoleRequest
      * @param string $url
      * @param string $method
      * @param array $values
+     * @param array $additionalValues
      * @param string|null $token
      *
      * @return ConsoleResponse
      */
-    public function makeRequest($url, $method, array $values, $token = null)
+    public function makeRequest($url, $method, array $values, array $additionalValues = [], $token = null)
     {
-        list($postFields, $getFields, $cookieFields, $rawPost) = $this->processValues($values);
+        list($postFields, $getFields, $cookieFields, $rawPost, $putFields) = $this->processValues($values);
+
+        if (isset($additionalValues['postFields'])) {
+            $postFields = array_merge($postFields, $additionalValues['postFields']);
+        }
+
+        if (isset($additionalValues['getFields'])) {
+            $getFields = array_merge($postFields, $additionalValues['getFields']);
+        }
+
+        if (isset($additionalValues['cookieFields'])) {
+            $cookieFields = array_merge($postFields, $additionalValues['cookieFields']);
+        }
+
+        if (isset($additionalValues['putFields'])) {
+            $putFields = array_merge($putFields, $additionalValues['putFields']);
+        }
 
         $postFields = $this->normalizeValues($postFields);
         $getFields = $this->normalizeValues($getFields);
+        $putFields = $this->normalizeValues($putFields);
 
         if (count($getFields)) {
             $parts = [];
@@ -45,6 +63,15 @@ class ConsoleRequest
                 $parts[] = "$key=$value";
             }
             $url = $url . '?' . implode('&', $parts);
+        }
+
+        $putRawPost = null;
+        if (count($putFields)) {
+            $parts = [];
+            foreach ($putFields as $key => $value) {
+                $parts[] = "$key=$value";
+            }
+            $putRawPost = implode('&', $parts);
         }
 
         $startTime = microtime(true);
@@ -65,6 +92,10 @@ class ConsoleRequest
         if ($rawPost) {
             curl_setopt($curl, CURLOPT_POST, true);
             curl_setopt($curl, CURLOPT_POSTFIELDS, $rawPost);
+        }
+        if ($putRawPost) {
+            curl_setopt($curl, CURLOPT_POST, true);
+            curl_setopt($curl, CURLOPT_POSTFIELDS, $putRawPost);
         }
         if (count($cookieFields)) {
             $parts = [];
@@ -124,6 +155,7 @@ class ConsoleRequest
         $postFields = [];
         $rawPost = isset($values['post_raw']) ? $values['post_raw'] : false;
         $getFields = [];
+        $putFields = [];
         $cookieFields = [];
 
         foreach ($values as $key => $value) {
@@ -141,6 +173,8 @@ class ConsoleRequest
                 if ($param->isMulti()) {
                     if (in_array($param->getType(), [InputParam::TYPE_POST, InputParam::TYPE_FILE])) {
                         $postFields[$key][] = $valueData;
+                    } elseif ($param->getType() == InputParam::TYPE_PUT) {
+                        $putFields[$key][] = $valueData;
                     } elseif ($param->getType() == InputParam::TYPE_COOKIE) {
                         $cookieFields[$key][] = $valueData;
                     } else {
@@ -149,6 +183,8 @@ class ConsoleRequest
                 } else {
                     if (in_array($param->getType(), [InputParam::TYPE_POST, InputParam::TYPE_FILE])) {
                         $postFields[$key] = $valueData;
+                    } elseif ($param->getType() == InputParam::TYPE_PUT) {
+                        $putFields[$key] = $valueData;
                     } elseif ($param->getType() == InputParam::TYPE_COOKIE) {
                         $cookieFields[$key] = $valueData;
                     } else {
@@ -158,7 +194,7 @@ class ConsoleRequest
             }
         }
 
-        return [$postFields, $getFields, $cookieFields, $rawPost];
+        return [$postFields, $getFields, $cookieFields, $rawPost, $putFields];
     }
 
     /**
@@ -173,10 +209,6 @@ class ConsoleRequest
     private function processParam(InputParam $param, $key, $value)
     {
         if ($param->getKey() == $key) {
-            if (!$value) {
-                return null;
-            }
-
             $valueData = $value;
 
             if ($param->getType() == InputParam::TYPE_FILE) {

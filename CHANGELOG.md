@@ -4,6 +4,44 @@ Updates should follow the [Keep a CHANGELOG](http://keepachangelog.com/) princip
 
 ## [Unreleased][unreleased]
 
+### Added
+
+* Added possibility to send current PHPSESSID via API Web Console
+
+## 1.10.0 - 2016-12-14
+
+### Added
+
+* Added X-Requested-With header to Cors handler
+
+## 1.9.1 - 2016-11-28
+
+### Fixed
+
+* Added possibility to send empty fields via console request
+
+## 1.9.0 - 2016-11-08
+
+### Added
+
+* Added support for PUT fields
+
+## 1.8.1 - 2016-10-28
+
+* Updated league/fractal library to 0.14.0
+
+## 1.8.0 - 2016-09-28
+
+### Added
+
+* Added cors headers - Access-Control-Allow-Headers and Access-Control-Allow-Methods
+
+## 1.7.0 - 2016-09-11
+
+### Added
+
+* Added default CORS preflight handler
+* Added possibility to enable global preflight handler for all handlers with `enableGlobalPreflight()` on `ApiDecider` 
 
 ## 1.6.2 - 2016-07-22
 
