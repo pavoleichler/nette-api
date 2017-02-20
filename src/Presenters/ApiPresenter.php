@@ -244,7 +244,11 @@ class ApiPresenter extends Presenter
             $response = new JsonApiResponse($exception->getCode(), $data);
         }else{
             // unknown exception
-            $response = new JsonApiResponse(500, ['status' => 'error', 'message' => 'Internal server error']);
+            if ($this->context->parameters['debugMode']){
+                throw $exception;
+            }else{
+                $response = new JsonApiResponse(500, ['status' => 'error', 'message' => 'Internal server error']);
+            }
             Debugger::log($exception, Debugger::EXCEPTION);
         }
 
