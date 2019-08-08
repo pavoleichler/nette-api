@@ -19,7 +19,8 @@ class ApiListingControl extends Control
 
     public function __construct(IContainer $parent, $name, ApiDecider $apiDecider)
     {
-        parent::__construct(null, $name);
+        parent::__construct(null, null);
+        $parent->addComponent($this, $name);
         $this->apiDecider = $apiDecider;
     }
 
