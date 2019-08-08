@@ -191,6 +191,9 @@ class ApiPresenter extends Presenter
 
     protected function sendCorsHeaders()
     {
+        $this->getHttpResponse()->addHeader('Access-Control-Allow-Headers', 'Content-Type');
+        $this->getHttpResponse()->addHeader('Access-Control-Allow-Methods', 'POST, DELETE, PUT, GET, OPTIONS');
+
         if ($this->corsHeader == 'auto') {
             $domain = $this->getRequestDomain();
             if ($domain !== false) {
@@ -241,7 +244,11 @@ class ApiPresenter extends Presenter
             $response = new JsonApiResponse($exception->getCode(), $data);
         }else{
             // unknown exception
-            $response = new JsonApiResponse(500, ['status' => 'error', 'message' => 'Internal server error']);
+            if ($this->context->parameters['debugMode']){
+                throw $exception;
+            }else{
+                $response = new JsonApiResponse(500, ['status' => 'error', 'message' => 'Internal server error']);
+            }
             Debugger::log($exception, Debugger::EXCEPTION);
         }
 
